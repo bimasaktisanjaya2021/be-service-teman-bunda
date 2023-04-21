@@ -1,6 +1,8 @@
 package services
 
 import (
+	"errors"
+
 	"github.com/sirupsen/logrus"
 	"github.com/tensuqiuwulu/be-service-teman-bunda/config"
 	"github.com/tensuqiuwulu/be-service-teman-bunda/exceptions"
@@ -11,7 +13,10 @@ import (
 
 type SettingServiceInterface interface {
 	FindSettingShippingCost(requestId string) (settingShippingCost response.FindSettingShippingCost)
-	FindSettingVerApp(requestId string) (settingVerApp response.FindSettingVerApp)
+	FindSettingVerAppAndroid(requestId string) (settingVerApp response.FindSettingVerApp)
+	FindSettingVerAppIos(requestId string) (settingVerApp response.FindSettingVerApp)
+	FindNewVersionApp(requestId string, os int) (settingVerApp []response.FindSettingVerApp)
+	FindNewVersionApp2(requestId string, os int) (settingVerApp response.FindSettingVerApp2)
 }
 
 type SettingServiceImplementation struct {
@@ -30,6 +35,26 @@ func NewSettingService(configWebserver config.Webserver, DB *gorm.DB, logger *lo
 	}
 }
 
+func (service *SettingServiceImplementation) FindNewVersionApp(requestId string, os int) (verAppResponse []response.FindSettingVerApp) {
+	verApp, err := service.SettingRepositoryInterface.FindNewVersionApp(service.DB, os)
+	exceptions.PanicIfError(err, requestId, service.Logger)
+	if len(verApp) == 0 {
+		exceptions.PanicIfRecordNotFound(errors.New("type os not found"), requestId, []string{"type os not found"}, service.Logger)
+	}
+	verAppResponse = response.ToFindSettingVerAppList(verApp)
+	return verAppResponse
+}
+
+func (service *SettingServiceImplementation) FindNewVersionApp2(requestId string, os int) (verAppResponse response.FindSettingVerApp2) {
+	verApp, err := service.SettingRepositoryInterface.FindNewVersionApp(service.DB, os)
+	exceptions.PanicIfError(err, requestId, service.Logger)
+	if len(verApp) == 0 {
+		exceptions.PanicIfRecordNotFound(errors.New("type os not found"), requestId, []string{"type os not found"}, service.Logger)
+	}
+	verAppResponse = response.ToFindSettingVerAppList2(verApp, os)
+	return verAppResponse
+}
+
 func (service *SettingServiceImplementation) FindSettingShippingCost(requestId string) (shippingCostResponse response.FindSettingShippingCost) {
 	shippingCost, err := service.SettingRepositoryInterface.FindSettingShippingCost(service.DB)
 	exceptions.PanicIfError(err, requestId, service.Logger)
@@ -37,9 +62,24 @@ func (service *SettingServiceImplementation) FindSettingShippingCost(requestId s
 	return shippingCostResponse
 }
 
-func (service *SettingServiceImplementation) FindSettingVerApp(requestId string) (verAppResponse response.FindSettingVerApp) {
-	verApp, err := service.SettingRepositoryInterface.FindSettingVerApp(service.DB)
+func (service *SettingServiceImplementation) FindSettingVerAppAndroid(requestId string) (verAppResponse response.FindSettingVerApp) {
+	os := "android"
+	verApp, err := service.SettingRepositoryInterface.FindSettingVerApp(service.DB, os)
 	exceptions.PanicIfError(err, requestId, service.Logger)
+	if len(verApp.SettingsName) == 0 {
+		exceptions.PanicIfRecordNotFound(errors.New("type os not found"), requestId, []string{"type os not found"}, service.Logger)
+	}
+	verAppResponse = response.ToFindSettingVerApp(verApp)
+	return verAppResponse
+}
+
+func (service *SettingServiceImplementation) FindSettingVerAppIos(requestId string) (verAppResponse response.FindSettingVerApp) {
+	os := "ios"
+	verApp, err := service.SettingRepositoryInterface.FindSettingVerApp(service.DB, os)
+	exceptions.PanicIfError(err, requestId, service.Logger)
+	if len(verApp.SettingsName) == 0 {
+		exceptions.PanicIfRecordNotFound(errors.New("type os not found"), requestId, []string{"type os not found"}, service.Logger)
+	}
 	verAppResponse = response.ToFindSettingVerApp(verApp)
 	return verAppResponse
 }

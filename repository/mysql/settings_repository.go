@@ -9,7 +9,8 @@ import (
 type SettingRepositoryInterface interface {
 	FindSettingsByName(DB *gorm.DB, settingName string) (entity.Settings, error)
 	FindSettingShippingCost(db *gorm.DB) (entity.Settings, error)
-	FindSettingVerApp(db *gorm.DB) (entity.Settings, error)
+	FindSettingVerApp(db *gorm.DB, os string) (entity.Settings, error)
+	FindNewVersionApp(db *gorm.DB, os int) ([]entity.Settings, error)
 }
 
 type SettingRepositoryImplementation struct {
@@ -20,6 +21,12 @@ func NewSettingRepository(configDatabase *config.Database) SettingRepositoryInte
 	return &SettingRepositoryImplementation{
 		configurationDatabase: configDatabase,
 	}
+}
+
+func (repository *SettingRepositoryImplementation) FindNewVersionApp(db *gorm.DB, os int) ([]entity.Settings, error) {
+	var settings []entity.Settings
+	results := db.Where("value = ?", os).Find(&settings)
+	return settings, results.Error
 }
 
 func (repository *SettingRepositoryImplementation) FindSettingsByName(DB *gorm.DB, settingName string) (entity.Settings, error) {
@@ -34,8 +41,8 @@ func (repository *SettingRepositoryImplementation) FindSettingShippingCost(DB *g
 	return settings, results.Error
 }
 
-func (repository *SettingRepositoryImplementation) FindSettingVerApp(DB *gorm.DB) (entity.Settings, error) {
+func (repository *SettingRepositoryImplementation) FindSettingVerApp(DB *gorm.DB, os string) (entity.Settings, error) {
 	var settings entity.Settings
-	results := DB.Where("settings_name = ?", "ver_app").First(&settings)
+	results := DB.Where("settings_name = ?", os).First(&settings)
 	return settings, results.Error
 }

@@ -577,6 +577,11 @@ func (service *OrderServiceImplementation) CreateOrder(requestId string, idUser 
 	var totalPrice float64
 	var paymentPointForCC float64
 	for _, cartItem := range cartItems {
+		productResult, err := service.ProductRepositoryInterface.FindProductById(service.DB, cartItem.IdProduct)
+		exceptions.PanicIfError(err, requestId, service.Logger)
+		if productResult.Stock <= 0 {
+			exceptions.PanicIfRecordNotFound(errors.New("stock product is empty"), requestId, []string{"Stock Produk Habis ", productResult.ProductName}, service.Logger)
+		}
 		orderItemEntity := &entity.OrderItem{}
 		orderItemEntity.Id = utilities.RandomUUID()
 		orderItemEntity.IdOrder = orderEntity.Id
@@ -928,8 +933,9 @@ func (service *OrderServiceImplementation) CreateOrder(requestId string, idUser 
 		exceptions.PanicIfErrorWithRollback(errUpdateOrderPayment, requestId, []string{"Error update order"}, service.Logger, tx)
 
 		//update product stock
-		orderItems, _ := service.OrderItemRepositoryInterface.FindOrderItemsByIdOrder(service.DB, order.Id)
-		for _, orderItem := range orderItems {
+		// orderItems, _ := service.OrderItemRepositoryInterface.FindOrderItemsByIdOrder(service.DB, orderEntity.Id)
+		// log.Println("orderItems = ", orderItems)
+		for _, orderItem := range cartItems {
 			product, errFindProduct := service.ProductRepositoryInterface.FindProductById(tx, orderItem.IdProduct)
 			exceptions.PanicIfErrorWithRollback(errFindProduct, requestId, []string{"product not found"}, service.Logger, tx)
 
@@ -950,7 +956,7 @@ func (service *OrderServiceImplementation) CreateOrder(requestId string, idUser 
 			exceptions.PanicIfErrorWithRollback(errAddProductStockHistory, requestId, []string{"add stock history error"}, service.Logger, tx)
 		}
 
-		// delete data item in cart
+		// delete da	ta item in cart
 		errDelete := service.CartRepositoryInterface.DeleteAllProductInCartByIdUser(tx, idUser, cartItems)
 		exceptions.PanicIfErrorWithRollback(errDelete, requestId, []string{"Error delete in cart"}, service.Logger, tx)
 

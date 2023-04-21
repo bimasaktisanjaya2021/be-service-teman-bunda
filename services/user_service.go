@@ -437,7 +437,10 @@ func (service *UserServiceImplementation) GenerateReferalCode(fullName string) s
 
 func (service *UserServiceImplementation) FindUserByReferal(requestId string, referal string) (userResponse response.FindUserByReferalResponse) {
 	user, err := service.UserRepositoryInterface.FindUserByReferal(service.DB, referal)
-	exceptions.PanicIfRecordNotFound(err, requestId, []string{"Data Not Found"}, service.Logger)
+	exceptions.PanicIfError(err, requestId, service.Logger)
+	if len(user.Id) == 0 {
+		exceptions.PanicIfRecordNotFound(errors.New("referal code not found"), requestId, []string{"referal code not found"}, service.Logger)
+	}
 	userResponse = response.ToUserFindByReferalResponse(user)
 	return userResponse
 }

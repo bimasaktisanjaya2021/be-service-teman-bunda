@@ -143,6 +143,7 @@ func PaymentRoute(e *echo.Echo, configWebserver config.Webserver, configurationJ
 func BannerRoute(e *echo.Echo, configWebserver config.Webserver, configurationJWT config.Jwt, bannerControllerInterface controllers.BannerControllerInterface) {
 	group := e.Group("api/v1")
 	group.GET("/banner", bannerControllerInterface.FindAllBanner, authMiddlerware.Authentication(configurationJWT))
+	group.GET("/banner/notoken", bannerControllerInterface.FindAllBanner)
 }
 
 // Product Brand
@@ -155,7 +156,12 @@ func ProductBrandRoute(e *echo.Echo, configWebserver config.Webserver, configura
 func SettingRoute(e *echo.Echo, configWebserver config.Webserver, configurationJWT config.Jwt, settingControllerInterface controllers.SettingControllerInterface) {
 	group := e.Group("api/v1")
 	group.GET("/setting/shippingcost", settingControllerInterface.FindSettingShippingCost, authMiddlerware.Authentication(configurationJWT))
-	group.GET("/setting/verapp", settingControllerInterface.FindSettingVerApp)
+	group.GET("/setting/verapp/android", settingControllerInterface.FindSettingVerAppAndroid)
+	group.GET("/setting/verapp/ios", settingControllerInterface.FindSettingVerAppIos)
+	group.GET("/setting/version", settingControllerInterface.FindNewVersionApp)
+
+	gropv2 := e.Group("api/v2")
+	gropv2.GET("/setting/version", settingControllerInterface.FindNewVersionApp2)
 }
 
 // Main Route

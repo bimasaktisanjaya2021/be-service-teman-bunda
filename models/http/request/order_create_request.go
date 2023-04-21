@@ -13,7 +13,7 @@ type CreateOrderRequest struct {
 	// PaymentByCash  float64 `json:"payment_by_cash" form:"payment_by_cash"`
 	Address        string  `json:"address" form:"address" validate:"required"`
 	CourierNote    string  `json:"courier_note" form:"courier_note"`
-	ShippingCost   float64 `json:"shipping_cost" form:"shipping_cost" validate:"required"`
+	ShippingCost   float64 `json:"shipping_cost" form:"shipping_cost"`
 	PaymentMethod  string  `json:"payment_method" form:"payment_method" validate:"required"`
 	PaymentChannel string  `json:"payment_channel" form:"payment_channel" validate:"required"`
 	PaymentFee     float64 `json:"payment_fee" form:"payment_fee"`

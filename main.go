@@ -48,7 +48,10 @@ func main() {
 		ErrorMessage: "Request Timeout",
 		Timeout:      10 * time.Second,
 	}))
-	e.Use(middleware.Recover())
+	e.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
+		DisableStackAll:   true,
+		DisablePrintStack: true,
+	}))
 	e.HTTPErrorHandler = exceptions.ErrorHandler
 	e.Use(middleware.RequestID())
 	// e.IPExtractor = echo.ExtractIPDirect()
